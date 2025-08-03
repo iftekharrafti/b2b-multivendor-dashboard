@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Plus, Edit, Trash2, Search, Package, Tag } from "lucide-react"
+import { categoriesAPI } from "../services/api"
 
 const ManageCategories = () => {
   const [categories, setCategories] = useState([])
@@ -16,65 +17,17 @@ const ManageCategories = () => {
   })
 
   useEffect(() => {
-    const mockCategories = [
-      {
-        id: 1,
-        name: "Construction Materials",
-        description: "Building and construction materials",
-        productCount: 245,
-        parentId: null,
-        children: [
-          { id: 11, name: "Steel & Metal", productCount: 89, parentId: 1 },
-          { id: 12, name: "Concrete & Cement", productCount: 67, parentId: 1 },
-          { id: 13, name: "Lumber & Wood", productCount: 89, parentId: 1 },
-        ],
-      },
-      {
-        id: 2,
-        name: "Hardware",
-        description: "Tools and hardware supplies",
-        productCount: 156,
-        parentId: null,
-        children: [
-          { id: 21, name: "Fasteners", productCount: 78, parentId: 2 },
-          { id: 22, name: "Hand Tools", productCount: 45, parentId: 2 },
-          { id: 23, name: "Power Tools", productCount: 33, parentId: 2 },
-        ],
-      },
-      {
-        id: 3,
-        name: "Electrical",
-        description: "Electrical components and supplies",
-        productCount: 198,
-        parentId: null,
-        children: [
-          { id: 31, name: "Wiring & Cables", productCount: 89, parentId: 3 },
-          { id: 32, name: "Switches & Outlets", productCount: 56, parentId: 3 },
-          { id: 33, name: "Lighting", productCount: 53, parentId: 3 },
-        ],
-      },
-      {
-        id: 4,
-        name: "Safety Equipment",
-        description: "Personal protective equipment and safety gear",
-        productCount: 87,
-        parentId: null,
-        children: [],
-      },
-      {
-        id: 5,
-        name: "HVAC",
-        description: "Heating, ventilation, and air conditioning",
-        productCount: 134,
-        parentId: null,
-        children: [],
-      },
-    ]
-
-    setTimeout(() => {
-      setCategories(mockCategories)
+    const fetchCategories = async () => {
+      setLoading(true)
+      try {
+        const res = await categoriesAPI.getAll()
+        setCategories(res.data)
+      } catch (err) {
+        console.error("Failed to fetch categories", err)
+      }
       setLoading(false)
-    }, 1000)
+    }
+    fetchCategories()
   }, [])
 
   const handleAddCategory = () => {
@@ -93,27 +46,35 @@ const ManageCategories = () => {
     setShowAddModal(true)
   }
 
-  const handleSaveCategory = () => {
-    if (editingCategory) {
-      // Update existing category
-      setCategories(categories.map((cat) => (cat.id === editingCategory.id ? { ...cat, ...formData } : cat)))
-    } else {
-      // Add new category
-      const newCategory = {
-        id: Date.now(),
-        ...formData,
-        productCount: 0,
-        children: [],
+  const handleSaveCategory = async () => {
+    setLoading(true)
+    try {
+      if (editingCategory) {
+        await categoriesAPI.update(editingCategory.id, formData)
+      } else {
+        await categoriesAPI.create(formData)
       }
-      setCategories([...categories, newCategory])
+      const res = await categoriesAPI.getAll()
+      setCategories(res.data)
+    } catch (err) {
+      console.error("Failed to save category", err)
     }
     setShowAddModal(false)
     setFormData({ name: "", description: "", parentId: null })
+    setLoading(false)
   }
 
-  const handleDeleteCategory = (categoryId) => {
+  const handleDeleteCategory = async (categoryId) => {
     if (window.confirm("Are you sure you want to delete this category? This action cannot be undone.")) {
-      setCategories(categories.filter((cat) => cat.id !== categoryId))
+      setLoading(true)
+      try {
+        await categoriesAPI.delete(categoryId)
+        const res = await categoriesAPI.getAll()
+        setCategories(res.data)
+      } catch (err) {
+        console.error("Failed to delete category", err)
+      }
+      setLoading(false)
     }
   }
 
