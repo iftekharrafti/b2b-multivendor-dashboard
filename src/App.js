@@ -29,6 +29,7 @@ import UserManagement from "./pages/UserManagement"
 import ManageVendors from "./pages/ManageVendors"
 import ManageCategories from "./pages/ManageCategories"
 import SystemSettings from "./pages/SystemSettings"
+import ProductDetail from "./pages/ProductDetail"
 
 function App() {
   return (
@@ -82,6 +83,14 @@ function App() {
                 element={
                   <ProtectedRoute allowedRoles={["vendor"]}>
                     <EditProduct />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="products/:id"
+                element={
+                  <ProtectedRoute allowedRoles={["vendor"]}>
+                    <ProductDetail />
                   </ProtectedRoute>
                 }
               />
