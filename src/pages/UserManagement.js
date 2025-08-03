@@ -51,12 +51,15 @@ const UserManagement = () => {
         phone: "",
         status: "pending",
     })
+    const token = localStorage.getItem("dashboard_token")
+    console.log('dashboard_token', token);
+    
 
     // Fetch users
     const fetchUsers = async () => {
         try {
             setLoading(true)
-            const token = localStorage.getItem("token")
+            const token = localStorage.getItem("dashboard_token")
             const queryParams = new URLSearchParams({
                 page: currentPage,
                 limit: 10,
@@ -105,7 +108,7 @@ const UserManagement = () => {
     const handleCreateUser = async (e) => {
         e.preventDefault()
         try {
-            const token = localStorage.getItem("token")
+            const token = localStorage.getItem("dashboard_token")
             const response = await fetch("http://localhost:5000/api/admin/users", {
                 method: "POST",
                 headers: {
@@ -142,7 +145,7 @@ const UserManagement = () => {
     const handleUpdateUser = async (e) => {
         e.preventDefault()
         try {
-            const token = localStorage.getItem("token")
+            const token = localStorage.getItem("dashboard_token")
             const response = await fetch(`http://localhost:5000/api/admin/users/${selectedUser.id}`, {
                 method: "PUT",
                 headers: {
@@ -170,7 +173,7 @@ const UserManagement = () => {
     // Delete user
     const handleDeleteUser = async () => {
         try {
-            const token = localStorage.getItem("token")
+            const token = localStorage.getItem("dashboard_token")
             const response = await fetch(`http://localhost:5000/api/admin/users/${selectedUser.id}`, {
                 method: "DELETE",
                 headers: {
@@ -196,7 +199,7 @@ const UserManagement = () => {
     // Toggle user verification
     const handleToggleVerification = async (userId, currentStatus) => {
         try {
-            const token = localStorage.getItem("token")
+            const token = localStorage.getItem("dashboard_token")
             const response = await fetch(`http://localhost:5000/api/admin/users/${userId}/verify`, {
                 method: "PATCH",
                 headers: {
@@ -688,7 +691,7 @@ const UserManagement = () => {
                                         value={formData.password}
                                         onChange={handleInputChange}
                                         required
-                                        minLength="6"
+                                        minLength="5"
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
