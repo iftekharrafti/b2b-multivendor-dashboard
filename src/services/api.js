@@ -26,7 +26,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Token expired or invalid
-      localStorage.removeItem("token")
+      localStorage.removeItem("dashboard_token")
       window.location.href = "/login"
     }
     return Promise.reject(error)
@@ -160,17 +160,34 @@ export const reportsAPI = {
 
 // Admin API
 export const adminAPI = {
-  getSystemStats: () => api.get("/admin/stats"),
+  // Dashboard Stats
+  getDashboardStats: () => api.get("/admin/dashboard-stats"),
+
+  // User Management
   getUsers: (params = {}) => {
     const queryString = new URLSearchParams(params).toString()
     return api.get(`/admin/users${queryString ? `?${queryString}` : ""}`)
   },
+  createUser: (userData) => api.post("/admin/users", userData),
+  updateUser: (id, userData) => api.put(`/admin/users/${id}`, userData),
+  deleteUser: (id) => api.delete(`/admin/users/${id}`),
+  verifyUser: (id, isVerified) => api.patch(`/admin/users/${id}/verify`, { isVerified }),
+  updateUserStatus: (id, status) => api.patch(`/admin/users/${id}/status`, { status }),
+
+  // Vendor Management
   getVendors: (params = {}) => {
     const queryString = new URLSearchParams(params).toString()
     return api.get(`/admin/vendors${queryString ? `?${queryString}` : ""}`)
   },
-  approveVendor: (vendorId) => api.patch(`/admin/vendors/${vendorId}/approve`),
-  rejectVendor: (vendorId) => api.patch(`/admin/vendors/${vendorId}/reject`),
+  getVendorById: (id) => api.get(`/admin/vendors/${id}`),
+  updateVendor: (id, vendorData) => api.put(`/admin/vendors/${id}`, vendorData),
+  deleteVendor: (id) => api.delete(`/admin/vendors/${id}`),
+  approveVendor: (id, isApproved, rejectionReason = null) =>
+    api.patch(`/admin/vendors/${id}/approval`, { isApproved, rejectionReason }),
+  updateVendorStatus: (id, status) => api.patch(`/admin/vendors/${id}/status`, { status }),
+  getVendorStats: (id, period = "30d") => api.get(`/admin/vendors/${id}/stats?period=${period}`),
+
+  // System Settings
   getSystemSettings: () => api.get("/admin/settings"),
   updateSystemSettings: (settings) => api.put("/admin/settings", settings),
 }

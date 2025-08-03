@@ -1,35 +1,34 @@
-import React from "react"
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
 import { AuthProvider } from "./contexts/AuthContext"
 import ProtectedRoute from "./components/Auth/ProtectedRoute"
 import DashboardLayout from "./components/Layout/DashboardLayout"
 
-// Auth Pages
+// Auth pages
 import Login from "./pages/Auth/Login"
 
-// Dashboard Pages
+// Dashboard pages
 import Dashboard from "./pages/Dashboard"
 import Products from "./pages/Products"
 import AddProduct from "./pages/AddProduct"
 import EditProduct from "./pages/EditProduct"
 import Orders from "./pages/Orders"
 import OrderDetail from "./pages/OrderDetail"
-import RFQ from "./pages/RFQ"
 import Customers from "./pages/Customers"
-import Analytics from "./pages/Analytics"
-import Settings from "./pages/Settings"
-import Profile from "./pages/Profile"
 import Chat from "./pages/Chat"
+import RFQ from "./pages/RFQ"
 import Inventory from "./pages/Inventory"
+import Analytics from "./pages/Analytics"
 import Payments from "./pages/Payments"
 import Reports from "./pages/Reports"
+import Profile from "./pages/Profile"
+import Settings from "./pages/Settings"
 
-// Admin Pages
+// Admin pages
 import AdminDashboard from "./pages/AdminDashboard"
+import UserManagement from "./pages/UserManagement"
 import ManageVendors from "./pages/ManageVendors"
 import ManageCategories from "./pages/ManageCategories"
 import SystemSettings from "./pages/SystemSettings"
-import UserManagement from "./pages/UserManagement"
 
 function App() {
   return (
@@ -37,229 +36,138 @@ function App() {
       <Router>
         <div className="App">
           <Routes>
-            {/* Public Routes */}
+            {/* Public routes */}
             <Route path="/login" element={<Login />} />
 
-            {/* Protected Routes */}
+            {/* Protected routes */}
             <Route
               path="/"
               element={
                 <ProtectedRoute>
-                  <Navigate to="/dashboard" replace />
+                  <DashboardLayout />
                 </ProtectedRoute>
               }
-            />
+            >
+              {/* Default redirect */}
+              <Route index element={<Navigate to="/dashboard" replace />} />
 
-            {/* Dashboard Routes */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <Dashboard />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
+              {/* Common routes */}
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="settings" element={<Settings />} />
+              <Route path="chat" element={<Chat />} />
+              <Route path="analytics" element={<Analytics />} />
+              <Route path="payments" element={<Payments />} />
+              <Route path="reports" element={<Reports />} />
 
-            {/* Vendor Routes */}
-            <Route
-              path="/products"
-              element={
-                <ProtectedRoute allowedRoles={["vendor"]}>
-                  <DashboardLayout>
+              {/* Vendor routes */}
+              <Route
+                path="products"
+                element={
+                  <ProtectedRoute allowedRoles={["vendor"]}>
                     <Products />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/products/add"
-              element={
-                <ProtectedRoute allowedRoles={["vendor"]}>
-                  <DashboardLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="add-product"
+                element={
+                  <ProtectedRoute allowedRoles={["vendor"]}>
                     <AddProduct />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/products/edit/:id"
-              element={
-                <ProtectedRoute allowedRoles={["vendor"]}>
-                  <DashboardLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="edit-product/:id"
+                element={
+                  <ProtectedRoute allowedRoles={["vendor"]}>
                     <EditProduct />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/orders"
-              element={
-                <ProtectedRoute allowedRoles={["vendor"]}>
-                  <DashboardLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="orders"
+                element={
+                  <ProtectedRoute allowedRoles={["admin", "vendor", "super_admin"]}>
                     <Orders />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/orders/:id"
-              element={
-                <ProtectedRoute allowedRoles={["vendor"]}>
-                  <DashboardLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="orders/:id"
+                element={
+                  <ProtectedRoute allowedRoles={["admin", "vendor", "super_admin"]}>
                     <OrderDetail />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/rfq"
-              element={
-                <ProtectedRoute allowedRoles={["vendor"]}>
-                  <DashboardLayout>
-                    <RFQ />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/customers"
-              element={
-                <ProtectedRoute allowedRoles={["vendor"]}>
-                  <DashboardLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="customers"
+                element={
+                  <ProtectedRoute allowedRoles={["vendor"]}>
                     <Customers />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/analytics"
-              element={
-                <ProtectedRoute allowedRoles={["vendor"]}>
-                  <DashboardLayout>
-                    <Analytics />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/inventory"
-              element={
-                <ProtectedRoute allowedRoles={["vendor"]}>
-                  <DashboardLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="rfq"
+                element={
+                  <ProtectedRoute allowedRoles={["vendor"]}>
+                    <RFQ />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="inventory"
+                element={
+                  <ProtectedRoute allowedRoles={["vendor"]}>
                     <Inventory />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Common Routes */}
-            <Route
-              path="/chat"
-              element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <Chat />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/payments"
-              element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <Payments />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/reports"
-              element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <Reports />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <Profile />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/settings"
-              element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <Settings />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Admin Routes */}
-            <Route
-              path="/admin/dashboard"
-              element={
-                <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
-                  <DashboardLayout>
+              {/* Admin routes */}
+              <Route
+                path="admin/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
                     <AdminDashboard />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/users"
-              element={
-                <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
-                  <DashboardLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="admin/users"
+                element={
+                  <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
                     <UserManagement />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/vendors"
-              element={
-                <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
-                  <DashboardLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="admin/vendors"
+                element={
+                  <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
                     <ManageVendors />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/categories"
-              element={
-                <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
-                  <DashboardLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="admin/categories"
+                element={
+                  <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
                     <ManageCategories />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/settings"
-              element={
-                <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
-                  <DashboardLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="admin/settings"
+                element={
+                  <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
                     <SystemSettings />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Catch all route */}
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                  </ProtectedRoute>
+                }
+              />
+            </Route>
           </Routes>
         </div>
       </Router>

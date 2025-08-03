@@ -1,15 +1,27 @@
-import React, { useContext } from "react"
+"use client"
 import { Link, useLocation } from "react-router-dom"
-import { AuthContext, useAuth } from "../../contexts/AuthContext"
-import { LayoutDashboard, Package, ShoppingCart, Users, MessageSquare, BarChart3, Settings, User, Wallet, FileText, Shield, UserCog, Store, Tags, Cog, LogOut } from 'lucide-react'
+import { useAuth } from "../../contexts/AuthContext"
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  Users,
+  MessageSquare,
+  BarChart3,
+  Settings,
+  User,
+  Wallet,
+  FileText,
+  UserCog,
+  Store,
+  Grid3X3,
+  Cog,
+  LogOut,
+} from "lucide-react"
 
 const Sidebar = () => {
-  const { user, logout } = useAuth()
   const location = useLocation()
-
-  const isActive = (path) => {
-    return location.pathname === path
-  }
+  const { user, logout } = useAuth()
 
   const menuItems = [
     {
@@ -25,10 +37,16 @@ const Sidebar = () => {
       roles: ["vendor"],
     },
     {
+      title: "Add Product",
+      icon: Package,
+      path: "/add-product",
+      roles: ["vendor"],
+    },
+    {
       title: "Orders",
       icon: ShoppingCart,
       path: "/orders",
-      roles: ["vendor"],
+      roles: ["admin", "vendor", "super_admin"],
     },
     {
       title: "Customers",
@@ -43,9 +61,9 @@ const Sidebar = () => {
       roles: ["admin", "vendor", "super_admin"],
     },
     {
-      title: "Analytics",
-      icon: BarChart3,
-      path: "/analytics",
+      title: "RFQ",
+      icon: FileText,
+      path: "/rfq",
       roles: ["vendor"],
     },
     {
@@ -53,6 +71,12 @@ const Sidebar = () => {
       icon: Package,
       path: "/inventory",
       roles: ["vendor"],
+    },
+    {
+      title: "Analytics",
+      icon: BarChart3,
+      path: "/analytics",
+      roles: ["admin", "vendor", "super_admin"],
     },
     {
       title: "Payments",
@@ -66,10 +90,10 @@ const Sidebar = () => {
       path: "/reports",
       roles: ["admin", "vendor", "super_admin"],
     },
-    // Admin only sections
+    // Admin only routes
     {
       title: "Admin Dashboard",
-      icon: Shield,
+      icon: LayoutDashboard,
       path: "/admin/dashboard",
       roles: ["admin", "super_admin"],
     },
@@ -87,7 +111,7 @@ const Sidebar = () => {
     },
     {
       title: "Manage Categories",
-      icon: Tags,
+      icon: Grid3X3,
       path: "/admin/categories",
       roles: ["admin", "super_admin"],
     },
@@ -97,7 +121,7 @@ const Sidebar = () => {
       path: "/admin/settings",
       roles: ["admin", "super_admin"],
     },
-    // Common sections
+    // Common routes
     {
       title: "Profile",
       icon: User,
@@ -114,31 +138,31 @@ const Sidebar = () => {
 
   const filteredMenuItems = menuItems.filter((item) => item.roles.includes(user?.role))
 
+  const isActive = (path) => {
+    return location.pathname === path
+  }
+
   return (
-    <div className="bg-gray-900 text-white w-64 min-h-screen flex flex-col">
-      {/* Logo */}
-      <div className="p-4 border-b border-gray-700">
-        <h1 className="text-xl font-bold">B2B Dashboard</h1>
-        <p className="text-sm text-gray-400 capitalize">{user?.role} Panel</p>
+    <div className="bg-gray-800 text-white w-64 min-h-screen flex flex-col">
+      <div className="p-4">
+        <h2 className="text-xl font-bold">B2B Dashboard</h2>
+        <p className="text-sm text-gray-300 capitalize">{user?.role} Panel</p>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-4">
+      <nav className="flex-1 px-4 pb-4">
         <ul className="space-y-2">
           {filteredMenuItems.map((item) => {
-            const IconComponent = item.icon
+            const Icon = item.icon
             return (
               <li key={item.path}>
                 <Link
                   to={item.path}
-                  className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                    isActive(item.path)
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                  className={`flex items-center px-4 py-2 text-sm rounded-lg transition-colors ${
+                    isActive(item.path) ? "bg-blue-600 text-white" : "text-gray-300 hover:bg-gray-700 hover:text-white"
                   }`}
                 >
-                  <IconComponent className="w-5 h-5" />
-                  <span>{item.title}</span>
+                  <Icon className="w-5 h-5 mr-3" />
+                  {item.title}
                 </Link>
               </li>
             )
@@ -146,28 +170,25 @@ const Sidebar = () => {
         </ul>
       </nav>
 
-      {/* User Info & Logout */}
       <div className="p-4 border-t border-gray-700">
-        <div className="flex items-center space-x-3 mb-3">
-          <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-            <span className="text-sm font-medium">
-              {user?.firstName?.charAt(0)}
-              {user?.lastName?.charAt(0)}
-            </span>
+        <div className="flex items-center mb-4">
+          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-sm font-medium">
+            {user?.firstName?.[0]}
+            {user?.lastName?.[0]}
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white truncate">
+          <div className="ml-3">
+            <p className="text-sm font-medium">
               {user?.firstName} {user?.lastName}
             </p>
-            <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+            <p className="text-xs text-gray-400">{user?.email}</p>
           </div>
         </div>
         <button
           onClick={logout}
-          className="flex items-center space-x-3 w-full p-2 text-gray-300 hover:bg-gray-800 hover:text-white rounded-lg transition-colors"
+          className="flex items-center w-full px-4 py-2 text-sm text-gray-300 rounded-lg hover:bg-gray-700 hover:text-white transition-colors"
         >
-          <LogOut className="w-4 h-4" />
-          <span>Logout</span>
+          <LogOut className="w-5 h-5 mr-3" />
+          Logout
         </button>
       </div>
     </div>
