@@ -1,9 +1,8 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
+import React from "react"
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
 import { AuthProvider } from "./contexts/AuthContext"
-
-// Layout Components
-import DashboardLayout from "./components/Layout/DashboardLayout"
 import ProtectedRoute from "./components/Auth/ProtectedRoute"
+import DashboardLayout from "./components/Layout/DashboardLayout"
 
 // Auth Pages
 import Login from "./pages/Auth/Login"
@@ -15,12 +14,12 @@ import AddProduct from "./pages/AddProduct"
 import EditProduct from "./pages/EditProduct"
 import Orders from "./pages/Orders"
 import OrderDetail from "./pages/OrderDetail"
+import RFQ from "./pages/RFQ"
 import Customers from "./pages/Customers"
 import Analytics from "./pages/Analytics"
 import Settings from "./pages/Settings"
 import Profile from "./pages/Profile"
 import Chat from "./pages/Chat"
-import RFQ from "./pages/RFQ"
 import Inventory from "./pages/Inventory"
 import Payments from "./pages/Payments"
 import Reports from "./pages/Reports"
@@ -30,52 +29,241 @@ import AdminDashboard from "./pages/AdminDashboard"
 import ManageVendors from "./pages/ManageVendors"
 import ManageCategories from "./pages/ManageCategories"
 import SystemSettings from "./pages/SystemSettings"
+import UserManagement from "./pages/UserManagement"
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <div className="min-h-screen bg-gray-50">
+    <AuthProvider>
+      <Router>
+        <div className="App">
           <Routes>
-            {/* Auth Routes */}
+            {/* Public Routes */}
             <Route path="/login" element={<Login />} />
 
-            {/* Protected Dashboard Routes */}
+            {/* Protected Routes */}
             <Route
               path="/"
               element={
                 <ProtectedRoute>
-                  <DashboardLayout />
+                  <Navigate to="/dashboard" replace />
                 </ProtectedRoute>
               }
-            >
-              {/* Vendor Dashboard Routes */}
-              <Route index element={<Dashboard />} />
-              <Route path="products" element={<Products />} />
-              <Route path="products/add" element={<AddProduct />} />
-              <Route path="products/edit/:id" element={<EditProduct />} />
-              <Route path="orders" element={<Orders />} />
-              <Route path="orders/:id" element={<OrderDetail />} />
-              <Route path="customers" element={<Customers />} />
-              <Route path="inventory" element={<Inventory />} />
-              <Route path="analytics" element={<Analytics />} />
-              <Route path="payments" element={<Payments />} />
-              <Route path="reports" element={<Reports />} />
-              <Route path="chat" element={<Chat />} />
-              <Route path="rfq" element={<RFQ />} />
-              <Route path="settings" element={<Settings />} />
-              <Route path="profile" element={<Profile />} />
+            />
 
-              {/* Admin Routes */}
-              <Route path="admin" element={<AdminDashboard />} />
-              <Route path="admin/vendors" element={<ManageVendors />} />
-              <Route path="admin/categories" element={<ManageCategories />} />
-              <Route path="admin/settings" element={<SystemSettings />} />
-            </Route>
+            {/* Dashboard Routes */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <Dashboard />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Vendor Routes */}
+            <Route
+              path="/products"
+              element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <DashboardLayout>
+                    <Products />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/products/add"
+              element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <DashboardLayout>
+                    <AddProduct />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/products/edit/:id"
+              element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <DashboardLayout>
+                    <EditProduct />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/orders"
+              element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <DashboardLayout>
+                    <Orders />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/orders/:id"
+              element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <DashboardLayout>
+                    <OrderDetail />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/rfq"
+              element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <DashboardLayout>
+                    <RFQ />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/customers"
+              element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <DashboardLayout>
+                    <Customers />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/analytics"
+              element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <DashboardLayout>
+                    <Analytics />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/inventory"
+              element={
+                <ProtectedRoute allowedRoles={["vendor"]}>
+                  <DashboardLayout>
+                    <Inventory />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Common Routes */}
+            <Route
+              path="/chat"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <Chat />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/payments"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <Payments />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/reports"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <Reports />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <Profile />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <Settings />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Admin Routes */}
+            <Route
+              path="/admin/dashboard"
+              element={
+                <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
+                  <DashboardLayout>
+                    <AdminDashboard />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
+                  <DashboardLayout>
+                    <UserManagement />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/vendors"
+              element={
+                <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
+                  <DashboardLayout>
+                    <ManageVendors />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/categories"
+              element={
+                <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
+                  <DashboardLayout>
+                    <ManageCategories />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/settings"
+              element={
+                <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
+                  <DashboardLayout>
+                    <SystemSettings />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Catch all route */}
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </div>
-      </AuthProvider>
-    </Router>
+      </Router>
+    </AuthProvider>
   )
 }
 
