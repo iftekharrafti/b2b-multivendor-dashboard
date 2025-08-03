@@ -1,133 +1,52 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useNavigate, useParams } from "react-router-dom"
+import { useParams, useNavigate } from "react-router-dom"
 import { ArrowLeft, Upload, X, Plus, Save } from "lucide-react"
+import { productsAPI, categoriesAPI } from "../services/api"
 
 const EditProduct = () => {
-  const navigate = useNavigate()
   const { id } = useParams()
-  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate()
+  const [loading, setLoading] = useState(true)
   const [initialLoading, setInitialLoading] = useState(true)
+  const [categories, setCategories] = useState([])
+  const [formData, setFormData] = useState(null)
   const [images, setImages] = useState([])
-  const [specifications, setSpecifications] = useState([{ key: "", value: "" }])
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    shortDescription: "",
-    sku: "",
-    category: "",
-    price: "",
-    comparePrice: "",
-    costPrice: "",
-    stock: "",
-    minOrderQuantity: "1",
-    weight: "",
-    dimensions: {
-      length: "",
-      width: "",
-      height: "",
-    },
-    tags: "",
-    status: "active",
-    featured: false,
-    trackQuantity: true,
-    allowBackorder: false,
-    requiresShipping: true,
-    taxable: true,
-    seoTitle: "",
-    seoDescription: "",
-    warranty: "",
-    brand: "",
-    model: "",
-    origin: "",
-  })
+  const [specifications, setSpecifications] = useState([])
 
-  const categories = [
-    "Construction Materials",
-    "Hardware",
-    "Electrical",
-    "Safety Equipment",
-    "Tools & Machinery",
-    "Plumbing",
-    "HVAC",
-    "Industrial Supplies",
-    "Office Supplies",
-    "Chemicals",
-  ]
-
-  // Load product data
+  // Load product and categories data
   useEffect(() => {
-    const loadProduct = async () => {
+    const fetchProduct = async () => {
+      setLoading(true)
       try {
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1000))
+        const res = await productsAPI.getById(id)
+        console.log('Fetched product:', res.data);
 
-        // Mock product data
-        const mockProduct = {
-          id: Number.parseInt(id),
-          name: "Industrial Steel Pipes",
-          description:
-            "High-quality industrial steel pipes suitable for construction and manufacturing applications. Made from premium grade steel with excellent durability and corrosion resistance.",
-          shortDescription: "Premium industrial steel pipes for construction",
-          sku: "ISP-001",
-          category: "Construction Materials",
-          price: "125.99",
-          comparePrice: "149.99",
-          costPrice: "89.50",
-          stock: "150",
-          minOrderQuantity: "10",
-          weight: "25.5",
-          dimensions: {
-            length: "300",
-            width: "15",
-            height: "15",
-          },
-          tags: "steel, pipes, industrial, construction",
-          status: "active",
-          featured: true,
-          trackQuantity: true,
-          allowBackorder: false,
-          requiresShipping: true,
-          taxable: true,
-          brand: "SteelCorp",
-          model: "SC-IP-300",
-          warranty: "2 years",
-          origin: "USA",
-        }
+        const product = res.data;
 
-        const mockImages = [
-          {
-            id: 1,
-            url: "/placeholder.svg?height=200&width=200",
-            name: "steel-pipes-1.jpg",
-          },
-          {
-            id: 2,
-            url: "/placeholder.svg?height=200&width=200",
-            name: "steel-pipes-2.jpg",
-          },
-        ]
+        const parsedImages = typeof product.images === "string"
+          ? JSON.parse(product.images)
+          : product.images;
 
-        const mockSpecs = [
-          { key: "Material", value: "Carbon Steel" },
-          { key: "Diameter", value: "15cm" },
-          { key: "Length", value: "3m" },
-          { key: "Thickness", value: "5mm" },
-          { key: "Pressure Rating", value: "150 PSI" },
-        ]
+        const parsedSpecifications = typeof product.specifications === "string"
+          ? JSON.parse(product.specifications)
+          : product.specifications;
 
-        setFormData(mockProduct)
-        setImages(mockImages)
-        setSpecifications(mockSpecs)
-      } catch (error) {
-        console.error("Error loading product:", error)
-      } finally {
-        setInitialLoading(false)
+        setFormData(product);
+        setImages(parsedImages || []);
+        setSpecifications(parsedSpecifications || []);
+      } catch (err) {
+        alert("Failed to load product.")
       }
+      setLoading(false)
     }
-
-    loadProduct()
+    const fetchCategories = async () => {
+      const res = await categoriesAPI.getAll()
+      setCategories(res.data)
+    }
+    fetchProduct()
+    fetchCategories()
   }, [id])
 
   const handleInputChange = (e) => {
@@ -182,38 +101,40 @@ const EditProduct = () => {
   }
 
   const updateSpecification = (index, field, value) => {
-    setSpecifications((prev) => prev.map((spec, i) => (i === index ? { ...spec, [field]: value } : spec)))
+    setSpecifications((prev) => prev?.map((spec, i) => (i === index ? { ...spec, [field]: value } : spec)))
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
 
+    const productData = {
+      ...formData,
+      images,
+      specifications,
+    }
+
+    console.log("productData:::", productData);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-
-      console.log("Updated product data:", {
-        ...formData,
-        images,
-        specifications: specifications.filter((spec) => spec.key && spec.value),
-      })
-
+      await productsAPI.update(id, productData) // Update API call to include images and specifications
+      alert("Product updated successfully.")
       navigate("/products")
-    } catch (error) {
-      console.error("Error updating product:", error)
+    } catch (err) {
+      alert("Failed to update product.")
     } finally {
       setLoading(false)
     }
   }
 
-  if (initialLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     )
   }
+
+  if (loading || !formData) return <div>Loading...</div>
 
   return (
     <div className="space-y-6">
@@ -451,9 +372,9 @@ const EditProduct = () => {
                   </div>
                 </div>
 
-                {images.length > 0 && (
+                {images?.length > 0 && (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {images.map((image) => (
+                    {images?.map((image) => (
                       <div key={image.id} className="relative group">
                         <img
                           src={image.url || "/placeholder.svg"}
@@ -488,7 +409,7 @@ const EditProduct = () => {
                 </button>
               </div>
               <div className="space-y-3">
-                {specifications.map((spec, index) => (
+                {specifications?.map((spec, index) => (
                   <div key={index} className="flex gap-3">
                     <input
                       type="text"
@@ -556,16 +477,15 @@ const EditProduct = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
                   <select
-                    name="category"
+                    name="categoryId"
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    value={formData.category}
+                    value={formData.categoryId}
                     onChange={handleInputChange}
                   >
-                    <option value="">Select category</option>
-                    {categories.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
+                    {categories?.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
                       </option>
                     ))}
                   </select>

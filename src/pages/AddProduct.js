@@ -41,9 +41,11 @@ const AddProduct = () => {
   }, [])
 
   const loadCategories = async () => {
+    console.log('asdfg');
+
     try {
       setCategoriesLoading(true)
-      const response = await categoriesAPI.getCategories()
+      const response = await categoriesAPI.getAll()
 
       // Flatten the hierarchical structure for the dropdown
       const flattenCategories = (categories, level = 0) => {
@@ -60,6 +62,9 @@ const AddProduct = () => {
         })
         return flattened
       }
+
+      console.log("response.data", response.data);
+      console.log("flattenCategories(response.data)", flattenCategories(response.data));
 
       setCategories(flattenCategories(response.data))
     } catch (error) {
@@ -128,6 +133,13 @@ const AddProduct = () => {
     e.preventDefault()
     setLoading(true)
 
+    // Validate required fields
+    if (!formData.name || !formData.sku || !formData.price || !formData.categoryId) {
+      alert("Please fill all required fields: Name, SKU, Price, Category.")
+      setLoading(false)
+      return
+    }
+
     try {
       // Create FormData for file upload
       const submitData = new FormData()
@@ -136,6 +148,9 @@ const AddProduct = () => {
       Object.keys(formData).forEach((key) => {
         if (key === "dimensions") {
           submitData.append(key, JSON.stringify(formData[key]))
+        } else if (key === "categoryId") {
+          // Ensure categoryId is a number
+          submitData.append(key, Number(formData[key]))
         } else {
           submitData.append(key, formData[key])
         }
@@ -154,11 +169,16 @@ const AddProduct = () => {
         }
       })
 
-      await productsAPI.createProduct(submitData)
+      // Debug: log FormData content
+      for (let pair of submitData.entries()) {
+        console.log(pair[0] + ':', pair[1])
+      }
+
+      await productsAPI.create(submitData)
       navigate("/products")
     } catch (error) {
       console.error("Error creating product:", error)
-      alert("Failed to create product. Please try again.")
+      alert("Failed to create product. Please check required fields and try again.")
     } finally {
       setLoading(false)
     }

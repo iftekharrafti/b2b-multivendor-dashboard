@@ -33,7 +33,7 @@ const Products = () => {
       if (searchTerm) params.search = searchTerm
       if (filterStatus !== "all") params.status = filterStatus
 
-      const response = await productsAPI.getProducts(params)
+      const response = await productsAPI.getAll(params)
       setProducts(response.data.products)
       setTotalPages(response.data.totalPages)
       setTotalProducts(response.data.total)
@@ -290,7 +290,7 @@ const Products = () => {
                           <Link to={`/products/${product.id}`} className="text-blue-600 hover:text-blue-900">
                             <Eye className="w-4 h-4" />
                           </Link>
-                          <Link to={`/products/edit/${product.id}`} className="text-indigo-600 hover:text-indigo-900">
+                          <Link to={`/edit-product/${product.id}`} className="text-indigo-600 hover:text-indigo-900">
                             <Edit className="w-4 h-4" />
                           </Link>
                           <button onClick={() => handleDelete(product.id)} className="text-red-600 hover:text-red-900">
