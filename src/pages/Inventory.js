@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Package, AlertTriangle, TrendingDown, TrendingUp, Search, Filter, Download, Plus } from "lucide-react"
+import { productsAPI } from "../services/api"
 
 const Inventory = () => {
   const [inventory, setInventory] = useState([])
@@ -9,84 +10,42 @@ const Inventory = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
 
-  useEffect(() => {
-    const mockInventory = [
-      {
-        id: 1,
-        name: "Industrial Steel Pipes",
-        sku: "ISP-001",
-        category: "Construction Materials",
-        currentStock: 150,
-        minStock: 50,
-        maxStock: 500,
-        reorderPoint: 75,
-        unitCost: 89.5,
-        totalValue: 13425.0,
-        lastRestocked: "2024-01-15",
-        status: "in_stock",
-      },
-      {
-        id: 2,
-        name: "Heavy Duty Bolts Set",
-        sku: "HDB-002",
-        category: "Hardware",
-        currentStock: 25,
-        minStock: 30,
-        maxStock: 200,
-        reorderPoint: 40,
-        unitCost: 22.75,
-        totalValue: 568.75,
-        lastRestocked: "2024-01-10",
-        status: "low_stock",
-      },
-      {
-        id: 3,
-        name: "Commercial Grade Cement",
-        sku: "CGC-003",
-        category: "Construction Materials",
-        currentStock: 0,
-        minStock: 20,
-        maxStock: 100,
-        reorderPoint: 25,
-        unitCost: 45.0,
-        totalValue: 0,
-        lastRestocked: "2024-01-05",
-        status: "out_of_stock",
-      },
-      {
-        id: 4,
-        name: "Electrical Wire Bundle",
-        sku: "EWB-004",
-        category: "Electrical",
-        currentStock: 85,
-        minStock: 25,
-        maxStock: 150,
-        reorderPoint: 35,
-        unitCost: 117.0,
-        totalValue: 9945.0,
-        lastRestocked: "2024-01-18",
-        status: "in_stock",
-      },
-      {
-        id: 5,
-        name: "Safety Equipment Kit",
-        sku: "SEK-005",
-        category: "Safety",
-        currentStock: 15,
-        minStock: 20,
-        maxStock: 80,
-        reorderPoint: 25,
-        unitCost: 78.38,
-        totalValue: 1175.7,
-        lastRestocked: "2024-01-12",
-        status: "low_stock",
-      },
-    ]
+  const fetchInventory = async () => {
+    try {
+      setLoading(true)
+      const response = await productsAPI.getAll()
 
-    setTimeout(() => {
-      setInventory(mockInventory)
+      console.log("response",response)
+      
+      // Transform API response to match the expected inventory format
+      const transformedData = response?.data?.products?.map(product => ({
+        id: product._id || product.id,
+        name: product.name,
+        sku: product.sku || `PROD-${String(product._id || product.id).slice(-4).toUpperCase()}`,
+        category: product.category?.name || 'Uncategorized',
+        currentStock: product.stock || 0,
+        minStock: product.minStock || 10,
+        maxStock: product.maxStock || 100,
+        reorderPoint: product.reorderPoint || 20,
+        unitCost: product.price || 0,
+        totalValue: (product.price || 0) * (product.stock || 0),
+        lastRestocked: product.updatedAt || new Date().toISOString().split('T')[0],
+        status: product.stock === 0 ? 'out_of_stock' : 
+                (product.stock <= (product.reorderPoint || 20) ? 'low_stock' : 'in_stock')
+      }))
+      
+      console.log("transformedData",transformedData)
+      setInventory(transformedData)
+    } catch (error) {
+      console.error('Error fetching inventory:', error)
+      // You might want to show an error message to the user here
+    } finally {
       setLoading(false)
-    }, 1000)
+    }
+  }
+
+  useEffect(() => {
+    fetchInventory()
   }, [])
 
   const getStatusBadge = (item) => {
@@ -124,23 +83,23 @@ const Inventory = () => {
     return { percentage, colorClass }
   }
 
-  const filteredInventory = inventory.filter((item) => {
-    const matchesSearch =
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.category.toLowerCase().includes(searchTerm.toLowerCase())
-
-    if (filterStatus === "all") return matchesSearch
-    return matchesSearch && item.status === filterStatus
+  const filteredInventory = inventory?.filter((item) => {
+    const matchesSearch = item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.category?.toLowerCase().includes(searchTerm.toLowerCase())
+    
+    const matchesStatus = filterStatus === "all" || item.status === filterStatus
+    
+    return matchesSearch && matchesStatus
   })
 
   const getInventoryStats = () => {
-    const totalValue = inventory.reduce((sum, item) => sum + item.totalValue, 0)
-    const lowStockItems = inventory.filter((item) => item.currentStock <= item.reorderPoint).length
-    const outOfStockItems = inventory.filter((item) => item.currentStock === 0).length
+    const totalValue = inventory?.reduce((sum, item) => sum + item.totalValue, 0)
+    const lowStockItems = inventory?.filter((item) => item.currentStock <= item.reorderPoint).length
+    const outOfStockItems = inventory?.filter((item) => item.currentStock === 0).length
 
     return {
-      totalItems: inventory.length,
+      totalItems: inventory?.length,
       totalValue,
       lowStockItems,
       outOfStockItems,
@@ -279,8 +238,9 @@ const Inventory = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredInventory.map((item) => {
+              {filteredInventory?.map((item) => {
                 const stockLevel = getStockLevel(item)
+                console.log("item",item)
                 return (
                   <tr key={item.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -301,9 +261,9 @@ const Inventory = () => {
                       <div className="text-xs text-gray-500 mt-1">{stockLevel.percentage.toFixed(0)}% of max</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.reorderPoint} units</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.unitCost.toFixed(2)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item?.unitCost}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      ${item.totalValue.toFixed(2)}
+                      ${item?.totalValue?.toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(item)}</td>
                   </tr>
