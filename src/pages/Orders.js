@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { Search, Filter, Eye, Download, Package, Clock, CheckCircle, XCircle, Truck, DollarSign } from "lucide-react"
 import { ordersAPI } from "../services/api"
+import { useAuth } from "../contexts/AuthContext"
 
 const Orders = () => {
   const [orders, setOrders] = useState([])
@@ -15,6 +16,8 @@ const Orders = () => {
   const [totalPages, setTotalPages] = useState(1)
   const [totalOrders, setTotalOrders] = useState(0)
   const [ordersPerPage] = useState(10)
+
+  const { user, logout } = useAuth()
 
   useEffect(() => {
     loadOrders()
@@ -33,7 +36,15 @@ const Orders = () => {
       if (searchTerm) params.search = searchTerm
       if (filterStatus !== "all") params.status = filterStatus
 
-      const response = await ordersAPI.getOrders(params)
+      let response;
+
+      if (user?.role === "vendor") {
+        response = await ordersAPI.getOrdersByVendor()
+      } else {
+        response = await ordersAPI.getAll(params)
+      }
+
+      console.log("orders",response)
       setOrders(response.data.orders)
       setTotalPages(response.data.totalPages)
       setTotalOrders(response.data.total)

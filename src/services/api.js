@@ -80,6 +80,7 @@ export const ordersAPI = {
   getById: (id) => api.get(`/orders/${id}`),
   updateStatus: (id, status) => api.patch(`/orders/${id}/status`, { status }),
   getOrderItems: (orderId) => api.get(`/orders/${orderId}/items`),
+  getOrdersByVendor: () => api.get(`/orders/vendor-orders`),
 }
 
 // Categories API

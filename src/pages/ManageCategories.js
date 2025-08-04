@@ -129,7 +129,7 @@ const ManageCategories = () => {
             <Package className="w-8 h-8 text-green-600" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Products</p>
-              <p className="text-2xl font-bold text-gray-900">{getTotalProducts()}</p>
+              <p className="text-2xl font-bold text-gray-900">{getTotalProducts() || 0}</p>
             </div>
           </div>
         </div>
