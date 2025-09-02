@@ -185,24 +185,29 @@ const Sidebar = () => {
 
         <div>
           <h2 className="text-xl font-bold text-gray-400">{user?.role === 'vendor' && "Buy Section"}</h2>
-          
+
           {
             user?.role === 'vendor' && (
               <p className="text-sm text-gray-300">Browse and purchase products</p>
             )
           }
         </div>
-        <div className="space-y-1">
-          {categories.map((cat) => (
-            <Link
-              to={`/category/${cat.id}`}
-              key={cat.id}
-              className={`flex items-center px-4 py-2 text-sm rounded-lg transition-colors $text-gray-300 hover:bg-gray-700 hover:text-white`}
-            >
-              {cat.name}
-            </Link>
-          ))}
-        </div>
+        {
+          user?.role === 'vendor' && (
+            <div className="space-y-1">
+              {categories.map((cat) => (
+                <Link
+                  to={`/category/${cat.id}`}
+                  key={cat.id}
+                  className={`flex items-center px-4 py-2 text-sm rounded-lg transition-colors $text-gray-300 hover:bg-gray-700 hover:text-white`}
+                >
+                  {cat.name}
+                </Link>
+              ))}
+            </div>
+          )
+        }
+
       </nav>
 
       <div className="p-4 border-t border-gray-700">
