@@ -1,5 +1,5 @@
 "use client"
-import { Link, useLocation } from "react-router-dom"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useAuth } from "../../contexts/AuthContext"
 import {
   LayoutDashboard,
@@ -18,10 +18,23 @@ import {
   Cog,
   LogOut,
 } from "lucide-react"
+import { useEffect, useState } from "react"
+import { categoriesAPI } from "../../services/api"
 
 const Sidebar = () => {
   const location = useLocation()
   const { user, logout } = useAuth()
+
+  const [categories, setCategories] = useState([])
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const res = await categoriesAPI.getAll()
+      setCategories(res.data)
+    }
+    fetchCategories()
+  }, [])
 
   const menuItems = [
     {
@@ -143,23 +156,24 @@ const Sidebar = () => {
   }
 
   return (
-    <div className="bg-gray-800 text-white w-64 min-h-screen flex flex-col">
+    <div className="bg-gray-800 text-white w-64 min-h-screen flex flex-col overflow-y-auto">
       <div className="p-4">
         <h2 className="text-xl font-bold">B2B Dashboard</h2>
         <p className="text-sm text-gray-300 capitalize">{user?.role} Panel</p>
       </div>
+      {console.log("user?.role:", user?.role)}
 
       <nav className="flex-1 px-4 pb-4">
         <ul className="space-y-2">
+          <h2 className="text-xl font-bold text-gray-400">{user?.role === 'vendor' && "Seller Section"}</h2>
           {filteredMenuItems.map((item) => {
             const Icon = item.icon
             return (
               <li key={item.path}>
                 <Link
                   to={item.path}
-                  className={`flex items-center px-4 py-2 text-sm rounded-lg transition-colors ${
-                    isActive(item.path) ? "bg-blue-600 text-white" : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                  }`}
+                  className={`flex items-center px-4 py-2 text-sm rounded-lg transition-colors ${isActive(item.path) ? "bg-blue-600 text-white" : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                    }`}
                 >
                   <Icon className="w-5 h-5 mr-3" />
                   {item.title}
@@ -168,6 +182,27 @@ const Sidebar = () => {
             )
           })}
         </ul>
+
+        <div>
+          <h2 className="text-xl font-bold text-gray-400">{user?.role === 'vendor' && "Buy Section"}</h2>
+          
+          {
+            user?.role === 'vendor' && (
+              <p className="text-sm text-gray-300">Browse and purchase products</p>
+            )
+          }
+        </div>
+        <div className="space-y-1">
+          {categories.map((cat) => (
+            <Link
+              to={`/category/${cat.id}`}
+              key={cat.id}
+              className={`flex items-center px-4 py-2 text-sm rounded-lg transition-colors $text-gray-300 hover:bg-gray-700 hover:text-white`}
+            >
+              {cat.name}
+            </Link>
+          ))}
+        </div>
       </nav>
 
       <div className="p-4 border-t border-gray-700">

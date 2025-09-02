@@ -69,6 +69,7 @@ export const productsAPI = {
       headers: { "Content-Type": "multipart/form-data" },
     })
   },
+  getByCategory: (categoryId) => api.get(`/categories/products/category/${categoryId}`)
 }
 
 // Orders API

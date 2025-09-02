@@ -1,13 +1,18 @@
 "use client"
 
-import { useState } from "react"
+import { useContext, useState } from "react"
 import { useAuth } from "../../contexts/AuthContext"
-import { Menu, Bell, Search, User, LogOut, Settings, ChevronDown } from "lucide-react"
+import { Menu, Bell, Search, User, LogOut, Settings, ChevronDown, ShoppingCart } from "lucide-react"
+import { CartContext } from "../../context/CartContext"
+import { Link } from "react-router-dom"
 
 const Header = ({ onMenuClick }) => {
   const { user, logout } = useAuth()
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+
+  const { cartItems } = useContext(CartContext)
+  const uniqueCount = Object.keys(cartItems).length
 
   const handleLogout = () => {
     logout()
@@ -40,6 +45,14 @@ const Header = ({ onMenuClick }) => {
 
       {/* Right side */}
       <div className="flex items-center space-x-4">
+        <Link className="relative" to="/cart">
+          <ShoppingCart className="w-7 h-7 text-blue-600" />
+          {uniqueCount > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full px-2 text-xs font-bold">
+              {uniqueCount}
+            </span>
+          )}
+        </Link>
         {/* Notifications */}
         <button className="relative p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
           <Bell className="h-5 w-5" />
