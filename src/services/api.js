@@ -72,6 +72,14 @@ export const productsAPI = {
   getByCategory: (categoryId) => api.get(`/categories/products/category/${categoryId}`)
 }
 
+// Cart API
+export const cartAPI = {
+  getCart: () => api.get("/cart"),
+  addToCart: (item) => api.post("/cart", item),
+  updateCart: (item) => api.put("/cart", item),
+  clearCart: () => api.delete("/cart"),
+}
+
 // Orders API
 export const ordersAPI = {
   getAll: (params = {}) => {
