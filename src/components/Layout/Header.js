@@ -1,23 +1,33 @@
 "use client"
 
-import { useContext, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { useAuth } from "../../contexts/AuthContext"
 import { Menu, Bell, Search, User, LogOut, Settings, ChevronDown, ShoppingCart } from "lucide-react"
 import { CartContext } from "../../context/CartContext"
 import { Link } from "react-router-dom"
+import { cartAPI } from "../../services/api"
 
 const Header = ({ onMenuClick }) => {
   const { user, logout } = useAuth()
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-
-  const { cartItems } = useContext(CartContext)
-  const uniqueCount = Object.keys(cartItems).length
+  const [cartItems, setCartItems] = useState([])
 
   const handleLogout = () => {
     logout()
     setIsUserMenuOpen(false)
   }
+
+  useEffect(() => {
+    const fetchCart = async () => {
+      const res = await cartAPI.getCart()
+      const items = JSON.parse(res.data.items) || []
+      setCartItems(items)
+    }
+    fetchCart()
+  }, [])
+
+  console.log("cartItems:", cartItems);
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 h-16 flex items-center justify-between px-6">
@@ -47,9 +57,9 @@ const Header = ({ onMenuClick }) => {
       <div className="flex items-center space-x-4">
         <Link className="relative" to="/cart">
           <ShoppingCart className="w-7 h-7 text-blue-600" />
-          {uniqueCount > 0 && (
+          {cartItems.length > 0 && (
             <span className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full px-2 text-xs font-bold">
-              {uniqueCount}
+              {cartItems.length}
             </span>
           )}
         </Link>

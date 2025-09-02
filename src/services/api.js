@@ -86,6 +86,7 @@ export const ordersAPI = {
     const queryString = new URLSearchParams(params).toString()
     return api.get(`/orders${queryString ? `?${queryString}` : ""}`)
   },
+  create: (orderData) => api.post("/orders", orderData),
   getById: (id) => api.get(`/orders/${id}`),
   updateStatus: (id, status) => api.patch(`/orders/${id}/status`, { status }),
   getOrderItems: (orderId) => api.get(`/orders/${orderId}/items`),
