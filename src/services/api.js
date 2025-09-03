@@ -146,8 +146,8 @@ export const chatAPI = {
   getChats: () => api.get("/chat"),
   getChatById: (id) => api.get(`/chat/${id}`),
   getMessages: (chatId) => api.get(`/chat/${chatId}/messages`),
-  sendMessage: (chatId, message) => api.post(`/chat/${chatId}/messages`, { message }),
-  createChat: (participantId) => api.post("/chat", { participantId }),
+  sendMessage: (chatId, messageData) => api.post(`/chat/${chatId}/messages`, messageData),
+  createChat: (participantId) => api.post("/chat/create", { participantId }),
 }
 
 // Reports API
