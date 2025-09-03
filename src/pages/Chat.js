@@ -1,290 +1,311 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Send, Search, MoreVertical, Phone, Video, Paperclip, Smile } from "lucide-react"
+import { useState, useEffect, useRef, useCallback } from "react"
+import { Send, Search, MoreVertical, Phone, Video, Paperclip, Smile, Loader2 } from "lucide-react"
+// import { vendorsAPI, chatAPI } from "@/services/api"
+import { formatDistanceToNow, format } from "date-fns"
+import { vendorsAPI, chatAPI } from "../services/api"
+import { useAuth } from "../contexts/AuthContext"
 
 const Chat = () => {
+  const { user } = useAuth()
   const [selectedChat, setSelectedChat] = useState(null)
   const [message, setMessage] = useState("")
   const [chats, setChats] = useState([])
+  const [vendors, setVendors] = useState([])
   const [messages, setMessages] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSending, setIsSending] = useState(false)
+  const [error, setError] = useState(null)
+  const messagesEndRef = useRef(null)
 
-  useEffect(() => {
-    // Mock chat data
-    const mockChats = [
-      {
-        id: 1,
-        name: "ABC Construction Co.",
-        lastMessage: "Thank you for the quote. When can you deliver?",
-        timestamp: "2024-01-20T15:30:00Z",
-        unread: 2,
-        avatar: "/placeholder.svg?height=40&width=40",
-        online: true,
-      },
-      {
-        id: 2,
-        name: "XYZ Manufacturing",
-        lastMessage: "We need to discuss the bulk pricing.",
-        timestamp: "2024-01-20T14:15:00Z",
-        unread: 0,
-        avatar: "/placeholder.svg?height=40&width=40",
-        online: false,
-      },
-      {
-        id: 3,
-        name: "BuildRight Inc.",
-        lastMessage: "Order has been received. Processing now.",
-        timestamp: "2024-01-20T10:45:00Z",
-        unread: 1,
-        avatar: "/placeholder.svg?height=40&width=40",
-        online: true,
-      },
-    ]
-
-    setChats(mockChats)
-    setSelectedChat(mockChats[0])
-  }, [])
-
-  useEffect(() => {
-    if (selectedChat) {
-      // Mock messages for selected chat
-      const mockMessages = [
-        {
-          id: 1,
-          senderId: selectedChat.id,
-          senderName: selectedChat.name,
-          content: "Hi, I'm interested in your industrial steel pipes.",
-          timestamp: "2024-01-20T14:00:00Z",
-          isOwn: false,
-        },
-        {
-          id: 2,
-          senderId: "me",
-          senderName: "You",
-          content: "Hello! Thank you for your interest. What quantity are you looking for?",
-          timestamp: "2024-01-20T14:05:00Z",
-          isOwn: true,
-        },
-        {
-          id: 3,
-          senderId: selectedChat.id,
-          senderName: selectedChat.name,
-          content: "We need about 500 units for our construction project.",
-          timestamp: "2024-01-20T14:10:00Z",
-          isOwn: false,
-        },
-        {
-          id: 4,
-          senderId: "me",
-          senderName: "You",
-          content: "Perfect! For 500 units, I can offer you a bulk discount. Let me prepare a quote for you.",
-          timestamp: "2024-01-20T14:15:00Z",
-          isOwn: true,
-        },
-        {
-          id: 5,
-          senderId: selectedChat.id,
-          senderName: selectedChat.name,
-          content: "Thank you for the quote. When can you deliver?",
-          timestamp: "2024-01-20T15:30:00Z",
-          isOwn: false,
-        },
-      ]
-      setMessages(mockMessages)
+  // ---- Fetch vendors
+  const fetchVendors = async () => {
+    try {
+      const response = await vendorsAPI.getAll()
+      console.log("response", response);
+      setVendors(response.data || [])
+    } catch (err) {
+      console.error("Error fetching vendors:", err)
+      setError("Failed to load vendors. Please try again later.")
     }
-  }, [selectedChat])
+  }
 
-  const handleSendMessage = () => {
-    if (message.trim() && selectedChat) {
+  // ---- Fetch chats
+  const fetchChats = async () => {
+    try {
+      const response = await chatAPI.getChats()
+      const chatsData = response.data || []
+      console.log("chatsData", chatsData);
+      setChats(chatsData)
+      if (chatsData.length > 0 && !selectedChat) {
+        handleSelectChat(chatsData[0])
+      }
+    } catch (err) {
+      console.error("Error fetching chats:", err)
+      setError("Failed to load chats. Please try again later.")
+    }
+  }
+
+  // ---- Select chat
+  const handleSelectChat = async (chat) => {
+    setSelectedChat(chat)
+    try {
+      const response = await chatAPI.getMessages(chat.id, { page: 1, limit: 20 })
+      setMessages(response.data.messages || [])
+    } catch (err) {
+      console.error("Error fetching messages:", err)
+      setError("Failed to load messages. Please try again later.")
+    }
+  }
+
+  // ---- Send message
+  const handleSendMessage = async () => {
+    if (!message.trim() || !selectedChat || isSending) return
+    const messageContent = message.trim()
+    setMessage("")
+    setIsSending(true)
+
+    try {
       const newMessage = {
-        id: messages.length + 1,
-        senderId: "me",
-        senderName: "You",
-        content: message,
-        timestamp: new Date().toISOString(),
+        id: Date.now(),
+        chatId: selectedChat.id,
+        senderId: user.id,
+        content: messageContent,
+        createdAt: new Date().toISOString(),
         isOwn: true,
       }
-      setMessages([...messages, newMessage])
-      setMessage("")
+
+      // optimistic update
+      setMessages((prev) => [...prev, newMessage])
+      await chatAPI.sendMessage(selectedChat.id, { message: messageContent })
+      await fetchChats()
+    } catch (err) {
+      console.error("Error sending message:", err)
+      setError("Failed to send message. Please try again.")
+    } finally {
+      setIsSending(false)
     }
   }
 
-  const formatTime = (timestamp) => {
-    return new Date(timestamp).toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-    })
-  }
-
-  const formatDate = (timestamp) => {
+  // ---- Formatters
+  const formatTime = (timestamp) => format(new Date(timestamp), "h:mm a")
+  const formatMessageDate = (timestamp) => {
     const date = new Date(timestamp)
     const today = new Date()
     const yesterday = new Date(today)
     yesterday.setDate(yesterday.getDate() - 1)
-
-    if (date.toDateString() === today.toDateString()) {
-      return "Today"
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return "Yesterday"
-    } else {
-      return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
-    }
+    if (date.toDateString() === today.toDateString()) return "Today"
+    if (date.toDateString() === yesterday.toDateString()) return "Yesterday"
+    return format(date, "MMMM d, yyyy")
   }
+
+  // ---- Group messages by date
+  const groupMessagesByDate = (messages) => {
+    const grouped = {}
+    messages.forEach((m) => {
+      const date = formatMessageDate(m.createdAt)
+      if (!grouped[date]) grouped[date] = []
+      grouped[date].push(m)
+    })
+    return grouped
+  }
+  const groupedMessages = groupMessagesByDate(messages)
+
+  // ---- Initial load
+  useEffect(() => {
+    const init = async () => {
+      setIsLoading(true)
+      await Promise.all([fetchVendors(), fetchChats()])
+      setIsLoading(false)
+    }
+    init()
+  }, [])
 
   return (
     <div className="h-[calc(100vh-8rem)] bg-white rounded-lg shadow-sm border overflow-hidden">
-      <div className="flex h-full">
-        {/* Chat List */}
-        <div className="w-1/3 border-r border-gray-200 flex flex-col">
-          {/* Chat List Header */}
-          <div className="p-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Messages</h2>
-            <div className="mt-3 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
-                type="text"
-                placeholder="Search conversations..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+      {isLoading ? (
+        <div className="flex h-screen items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+        </div>
+      ) : error ? (
+        <div className="flex h-screen items-center justify-center">
+          <div className="text-center p-4 max-w-md">
+            <div className="text-red-500 mb-2">Error loading chat</div>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex h-screen bg-gray-100">
+          {/* Sidebar */}
+          <div className="w-1/3 border-r border-gray-200 bg-white flex flex-col">
+            <div className="p-4 border-b border-gray-200">
+              <h2 className="text-xl font-semibold mb-4">Messages</h2>
+              <div className="relative mb-3">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search conversations..."
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              {chats.length === 0 ? (
+                <div className="p-4 text-center text-gray-500">No chats yet.</div>
+              ) : (
+                chats.map((chat) => {
+                  const other = chat.participants?.find((p) => p.id !== user.id)
+                  const lastMessage = chat.Messages?.[0]
+                  return (
+                    <div
+                      key={chat.id}
+                      onClick={() => handleSelectChat(chat)}
+                      className={`p-4 border-b cursor-pointer hover:bg-gray-50 ${
+                        selectedChat?.id === chat.id ? "bg-blue-50" : ""
+                      }`}
+                    >
+                      <div className="flex items-center">
+                        <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold">
+                          {other?.firstName?.charAt(0) || "V"}
+                        </div>
+                        <div className="ml-3 flex-1 min-w-0">
+                          <div className="flex justify-between items-center">
+                            <h3 className="font-medium truncate">
+                              {other?.companyName ||
+                                `${other?.firstName || ""} ${other?.lastName || ""}`.trim() ||
+                                "Vendor"}
+                            </h3>
+                            {chat.lastMessageAt && (
+                              <span className="text-xs text-gray-500 ml-2">
+                                {formatDistanceToNow(new Date(chat.lastMessageAt))} ago
+                              </span>
+                            )}
+                          </div>
+                          {lastMessage && (
+                            <p className="text-sm text-gray-500 truncate">
+                              {lastMessage.senderId === user.id ? "You: " : ""}
+                              {lastMessage.message}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })
+              )}
             </div>
           </div>
 
-          {/* Chat List Items */}
-          <div className="flex-1 overflow-y-auto">
-            {chats.map((chat) => (
-              <div
-                key={chat.id}
-                onClick={() => setSelectedChat(chat)}
-                className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${
-                  selectedChat?.id === chat.id ? "bg-blue-50 border-blue-200" : ""
-                }`}
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="relative">
-                    <img
-                      src={chat.avatar || "/placeholder.svg"}
-                      alt={chat.name}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                    {chat.online && (
-                      <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium text-gray-900 truncate">{chat.name}</p>
-                      <p className="text-xs text-gray-500">{formatTime(chat.timestamp)}</p>
+          {/* Chat area */}
+          <div className="flex-1 flex flex-col">
+            {selectedChat ? (
+              <>
+                {/* Chat header */}
+                <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
+                  <div className="flex items-center">
+                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold">
+                      {selectedChat.participantNames?.[0]?.charAt(0) || "V"}
                     </div>
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-gray-500 truncate">{chat.lastMessage}</p>
-                      {chat.unread > 0 && (
-                        <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-blue-600 rounded-full">
-                          {chat.unread}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Chat Area */}
-        <div className="flex-1 flex flex-col">
-          {selectedChat ? (
-            <>
-              {/* Chat Header */}
-              <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="relative">
-                    <img
-                      src={selectedChat.avatar || "/placeholder.svg"}
-                      alt={selectedChat.name}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                    {selectedChat.online && (
-                      <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-                    )}
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900">{selectedChat.name}</h3>
-                    <p className="text-sm text-gray-500">{selectedChat.online ? "Online" : "Offline"}</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
-                    <Phone className="w-5 h-5" />
-                  </button>
-                  <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
-                    <Video className="w-5 h-5" />
-                  </button>
-                  <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
-                    <MoreVertical className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {messages.map((msg) => (
-                  <div key={msg.id} className={`flex ${msg.isOwn ? "justify-end" : "justify-start"}`}>
-                    <div
-                      className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                        msg.isOwn ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-900"
-                      }`}
-                    >
-                      <p className="text-sm">{msg.content}</p>
-                      <p className={`text-xs mt-1 ${msg.isOwn ? "text-blue-100" : "text-gray-500"}`}>
-                        {formatTime(msg.timestamp)}
+                    <div className="ml-3">
+                      <h3 className="font-medium">
+                        {selectedChat.participantNames?.join(", ") || "Chat"}
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        {selectedChat.lastMessageAt
+                          ? `Last active ${formatDistanceToNow(new Date(selectedChat.lastMessageAt))} ago`
+                          : "No messages yet"}
                       </p>
                     </div>
                   </div>
-                ))}
-              </div>
-
-              {/* Message Input */}
-              <div className="p-4 border-t border-gray-200">
-                <div className="flex items-center space-x-2">
-                  <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
-                    <Paperclip className="w-5 h-5" />
-                  </button>
-                  <div className="flex-1 relative">
-                    <input
-                      type="text"
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-                      placeholder="Type a message..."
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                    <button className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600">
-                      <Smile className="w-5 h-5" />
+                  <div className="flex space-x-2">
+                    <button className="p-2 rounded-full hover:bg-gray-100">
+                      <Phone className="h-5 w-5 text-gray-500" />
+                    </button>
+                    <button className="p-2 rounded-full hover:bg-gray-100">
+                      <Video className="h-5 w-5 text-gray-500" />
+                    </button>
+                    <button className="p-2 rounded-full hover:bg-gray-100">
+                      <MoreVertical className="h-5 w-5 text-gray-500" />
                     </button>
                   </div>
+                </div>
+
+                {/* Messages */}
+                <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+                  {Object.entries(groupedMessages).map(([date, msgs]) => (
+                    <div key={date}>
+                      <div className="text-center text-xs text-gray-500 my-2">{date}</div>
+                      {msgs.map((msg) => (
+                        <div
+                          key={msg.id}
+                          className={`flex mb-2 ${
+                            msg.senderId === user.id ? "justify-end" : "justify-start"
+                          }`}
+                        >
+                          <div
+                            className={`px-3 py-2 rounded-lg max-w-xs ${
+                              msg.senderId === user.id
+                                ? "bg-blue-500 text-white"
+                                : "bg-white border"
+                            }`}
+                          >
+                            <p className="text-sm">{msg.content}</p>
+                            <span className="text-[10px] text-gray-400 block text-right">
+                              {formatTime(msg.createdAt)}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                  <div ref={messagesEndRef} />
+                </div>
+
+                {/* Input */}
+                <div className="p-4 border-t bg-white flex items-center space-x-2">
+                  <button className="p-2 rounded-full hover:bg-gray-100">
+                    <Paperclip className="h-5 w-5 text-gray-500" />
+                  </button>
+                  <button className="p-2 rounded-full hover:bg-gray-100">
+                    <Smile className="h-5 w-5 text-gray-500" />
+                  </button>
+                  <input
+                    type="text"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Type a message..."
+                    className="flex-1 px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
                   <button
                     onClick={handleSendMessage}
-                    className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                    disabled={!message.trim()}
+                    disabled={isSending}
+                    className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50"
                   >
-                    <Send className="w-5 h-5" />
+                    <Send className="h-5 w-5" />
                   </button>
                 </div>
-              </div>
-            </>
-          ) : (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Send className="w-8 h-8 text-gray-400" />
+              </>
+            ) : (
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Send className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900">No conversation selected</h3>
+                  <p className="text-gray-500">Choose a conversation to start messaging</p>
                 </div>
-                <h3 className="text-lg font-medium text-gray-900">No conversation selected</h3>
-                <p className="text-gray-500">Choose a conversation to start messaging</p>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
