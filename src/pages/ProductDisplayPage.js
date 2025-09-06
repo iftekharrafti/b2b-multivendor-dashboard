@@ -39,7 +39,22 @@ const ProductDisplayPage = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6">
             {products?.map((product) => (
                 <div key={product.id} className="bg-white rounded-lg shadow p-4 flex flex-col">
-                    <img src={product.image} alt={product.name} className="mb-4" />
+                    {/* <img src={product.image} alt={product.name} className="mb-4" /> */}
+                    {
+                        console.log("product.images: ", product)
+                    }
+                    {
+                        console.log(`http://localhost:5000/uploads/products/${JSON.parse(product.images)[0]}`)
+                    }
+                    {/* <img
+                        src={`http://localhost:5000/uploads/products/${JSON.parse(product.images)[0]}`}
+                        style={{ width: "200px", height: "200px", objectFit: "cover" }}
+                        alt="Product"
+                    /> */}
+                    <img
+                        src={product.id==2 ? "/polo.jpg" : "/polo1.jpg"}
+                        alt="Product"
+                    />
                     <h3 className="font-bold text-lg mb-2">{product.name}</h3>
                     <p className="text-gray-700 mb-2">${product.price}</p>
                     <button
