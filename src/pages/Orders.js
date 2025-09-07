@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
-import { Search, Filter, Eye, Download, Package, Clock, CheckCircle, XCircle, Truck, DollarSign } from "lucide-react"
+import { Search, Filter, Eye, Download, Package, Clock, CheckCircle, XCircle, Truck, DollarSign, Banknote } from "lucide-react"
 import { ordersAPI } from "../services/api"
 import { useAuth } from "../contexts/AuthContext"
+
 
 const Orders = () => {
   const [orders, setOrders] = useState([])
@@ -242,10 +243,10 @@ const Orders = () => {
         </div>
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <div className="flex items-center">
-            <DollarSign className="w-8 h-8 text-green-600" />
+            <Banknote className="w-8 h-8 text-green-600" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Revenue</p>
-              <p className="text-2xl font-bold text-gray-900">${stats.totalRevenue.toFixed(2)}</p>
+              <p className="text-2xl font-bold text-gray-900">৳{stats.totalRevenue.toFixed(2)}</p>
             </div>
           </div>
         </div>
@@ -351,7 +352,7 @@ const Orders = () => {
                         {order.OrderItems?.length || 0} items
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        ${Number.parseFloat(order.total).toFixed(2)}
+                        ৳{Number.parseFloat(order.total).toFixed(2)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(order.status)}</td>
                       <td className="px-6 py-4 whitespace-nowrap">{getPaymentStatusBadge(order.paymentStatus)}</td>

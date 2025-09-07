@@ -152,7 +152,7 @@ const Inventory = () => {
             <TrendingUp className="w-8 h-8 text-green-600" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Value</p>
-              <p className="text-2xl font-bold text-gray-900">${stats.totalValue.toFixed(2)}</p>
+              <p className="text-2xl font-bold text-gray-900">৳{stats.totalValue.toFixed(2)}</p>
             </div>
           </div>
         </div>
@@ -261,9 +261,9 @@ const Inventory = () => {
                       <div className="text-xs text-gray-500 mt-1">{stockLevel.percentage.toFixed(0)}% of max</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.reorderPoint} units</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item?.unitCost}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">৳{item?.unitCost}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      ${item?.totalValue?.toFixed(2)}
+                      ৳{item?.totalValue?.toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(item)}</td>
                   </tr>

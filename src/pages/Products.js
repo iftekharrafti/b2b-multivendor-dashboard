@@ -281,7 +281,7 @@ const Products = () => {
                         {product.Category?.name || "Uncategorized"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ${Number.parseFloat(product.price).toFixed(2)}
+                        BDT {Number.parseFloat(product.price).toFixed(2)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.stock} units</td>
                       <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(product.status, product.stock)}</td>

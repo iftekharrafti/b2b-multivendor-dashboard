@@ -43,7 +43,7 @@ const Dashboard = () => {
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: "USD",
+      currency: "BDT",
     }).format(amount)
   }
 

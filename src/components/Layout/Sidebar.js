@@ -67,12 +67,12 @@ const Sidebar = () => {
       path: "/customers",
       roles: ["vendor"],
     },
-    {
-      title: "Chat",
-      icon: MessageSquare,
-      path: "/chat",
-      roles: ["admin", "vendor", "super_admin"],
-    },
+    // {
+    //   title: "Chat",
+    //   icon: MessageSquare,
+    //   path: "/chat",
+    //   roles: ["admin", "vendor", "super_admin"],
+    // },
     {
       title: "RFQ",
       icon: FileText,
@@ -91,12 +91,12 @@ const Sidebar = () => {
       path: "/analytics",
       roles: ["admin", "vendor", "super_admin"],
     },
-    {
-      title: "Payments",
-      icon: Wallet,
-      path: "/payments",
-      roles: ["admin", "vendor", "super_admin"],
-    },
+    // {
+    //   title: "Payments",
+    //   icon: Wallet,
+    //   path: "/payments",
+    //   roles: ["admin", "vendor", "super_admin"],
+    // },
     {
       title: "Reports",
       icon: FileText,
